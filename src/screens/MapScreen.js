@@ -96,7 +96,6 @@ export default function MapScreen({ navigation }) {
 								showModal={showModal}
 								setShowModal={setShowModal}
 							/>
-							
 							<MapView
 								initialRegion={region}
 								showsUserLocation={true}

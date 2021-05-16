@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { StyleSheet, ScrollView, View, ActivityIndicator } from 'react-native';
 import { Text, Button} from 'react-native-elements';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import CustomHeader from '../components/molecules/header/CustomHeader';
 import CustomFooter from '../components/molecules/footer/CustomFooter';
 import { auth } from '../utils/firebase'
@@ -15,6 +16,7 @@ export default function LogoutScreen({ navigation }) {
         setLoading(true)
         try {
             await auth.signOut();
+            await AsyncStorage.setItem('USER', JSON.stringify({}))
             navigation.navigate('Login');
             setLoading(false);
         } catch (error) {

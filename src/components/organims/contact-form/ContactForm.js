@@ -1,6 +1,7 @@
 import React from 'react'
 import { View, Dimensions, StyleSheet } from 'react-native';
 import { Button, Input, Text } from 'react-native-elements';
+import { Wave } from 'react-native-animated-spinkit';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import CustomModal from '../../molecules/modal/CustomModal';
 import colors from '../../../utils/colors';
@@ -9,7 +10,7 @@ const { spanishVioletLight } = colors
 const height = Dimensions.get('screen').height;
 const width = Dimensions.get('screen').width;
 
-export default function ContactForm({ showModal, setShowModal, contact, setContact, aceptButton }) {
+export default function ContactForm({ loading, showModal, setShowModal, contact, setContact, aceptButton }) {
 
     const { name, phone } = contact;
 
@@ -59,11 +60,16 @@ export default function ContactForm({ showModal, setShowModal, contact, setConta
                     buttonStyle={{ backgroundColor: spanishVioletLight}}
                     onPress={() => setShowModal(false)}
                 />
-                <Button 
-                    title='Aceptar'
-                    buttonStyle={{ backgroundColor: spanishVioletLight}}
-                    onPress={aceptButton}
-                />
+                {
+                    loading ?
+                        <Wave size={28} color={spanishVioletLight}/>
+                        :
+                        <Button 
+                            title='Aceptar'
+                            buttonStyle={{ backgroundColor: spanishVioletLight}}
+                            onPress={aceptButton}
+                        />
+                }
             </View>
         </CustomModal>
     )

@@ -3,7 +3,6 @@ import { View, Modal, StyleSheet } from 'react-native';
 import { Text } from 'react-native-elements';
 
 export default function CustomModal({ visible, width, height, title, color, children  }) {
-    console.log('visible: ', visible)
     return (
         <Modal
             animationType='slide'

@@ -13,7 +13,7 @@ const Stack = createStackNavigator();
 export default function Navigator() {
   	return (
 		<NavigationContainer>
-			<Stack.Navigator initialRouteName='Contacts' screenOptions={{headerShown: false, animationEnabled: false}} >
+			<Stack.Navigator initialRouteName='Login' screenOptions={{headerShown: false, animationEnabled: false}} >
 				<Stack.Screen 
 					name='Login' 
 					component={LoginScreen}
