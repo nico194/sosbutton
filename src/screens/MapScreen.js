@@ -113,7 +113,7 @@ export default function MapScreen({ navigation }) {
 						</View>
 				}
 			</ScrollView>
-            <CustomFooter navigation={navigation} page='Map' />
+            <CustomFooter navigate={navigation.navigate} page='Map' />
 		</View>
 	);
 }

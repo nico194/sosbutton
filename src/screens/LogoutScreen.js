@@ -5,7 +5,7 @@ import CustomHeader from '../components/molecules/header/CustomHeader';
 import CustomFooter from '../components/molecules/footer/CustomFooter';
 import { auth } from '../utils/firebase'
 import colors from '../utils/colors';
-const { spanishVioletLight, lightGreen } = colors;
+const { spanishVioletLight, lightGreen, spanishViolet } = colors;
 
 export default function LogoutScreen({ navigation }) {
 
@@ -35,14 +35,14 @@ export default function LogoutScreen({ navigation }) {
         <View style={styles.container}>
             <CustomHeader />
             <ScrollView contentContainerStyle={{ padding: 15 }}>
-                <Text h4 h4Style={{ textAlign: 'left', marginBottom: 30}}>¿Esta seguro que desea salir de la aplicación?</Text>
+                <Text h4 h4Style={{ textAlign: 'left', marginBottom: 30, color: spanishViolet}}>¿Esta seguro que desea salir de la aplicación?</Text>
                 <Button
                     onPress={logout}
                     buttonStyle={{ backgroundColor: spanishVioletLight }}
                     title='Salir'
                 />
             </ScrollView>
-            <CustomFooter navigation={navigation} page='Logout' />
+            <CustomFooter navigate={navigation.navigate} page='Logout' />
         </View>
     )
 }

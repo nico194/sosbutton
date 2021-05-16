@@ -4,9 +4,9 @@ import { Card, Avatar, Text, Input, Button } from 'react-native-elements';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import { MaterialIcons, MaterialCommunityIcons } from '@expo/vector-icons';
 import colors from '../../../utils/colors';
-const { spanishVioletLight, lightGreen, danger } = colors;
+const { spanishVioletLight, spanishViolet, danger } = colors;
 
-export default function Contact({ contact, contactSelected, setContactSelected }) {
+export default function Contact({ contact, contactSelected, setContactSelected, deleteContact, updateContact }) {
 
     const { name, phone } = contactSelected;
     const [selected, setselected] = useState(false)
@@ -43,9 +43,9 @@ export default function Contact({ contact, contactSelected, setContactSelected }
                 <View>
                     {
                         selected ?
-                        <MaterialCommunityIcons name='trash-can' size={35} color={danger} />
+                        <MaterialIcons name='expand-less' size={35} color={spanishViolet} />
                         :
-                        <MaterialIcons name='add' size={35} color={lightGreen} />
+                        <MaterialIcons name='expand-more' size={35} color={spanishViolet} />
                     }
                 </View>
             </TouchableOpacity>
@@ -79,11 +79,19 @@ export default function Contact({ contact, contactSelected, setContactSelected }
                                 />
                             }
                         />
-                        <Button
-                            buttonStyle={styles.saveButton}
-                            title='Guardar'
-                            onPress={() => console.log('Click')}
-                        />
+                        <View style={styles.actionButtons}>
+                            <Button 
+                                type='clear'
+                                title='Elmininar'
+                                titleStyle={{ color: danger }}
+                                onPress={deleteContact}
+                            />
+                            <Button 
+                                title='Guardar'
+                                buttonStyle={{ backgroundColor: spanishVioletLight, paddingHorizontal: 30}}
+                                onPress={updateContact}
+                            />
+                        </View>
                     </View>
             }
         </Card>
@@ -106,9 +114,8 @@ const styles = StyleSheet.create({
         borderBottomLeftRadius: 20,
         borderBottomRightRadius: 20
     },
-    saveButton: {
-        backgroundColor: spanishVioletLight,
-        width: '50%',
-        alignSelf: 'flex-end'
+    actionButtons: {
+        flexDirection: 'row', 
+        justifyContent: 'flex-end'
     }
 })

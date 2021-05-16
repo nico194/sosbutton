@@ -48,7 +48,7 @@ export default function RegisterScreem({ navigation }) {
                 const userAuthenticated = { ...user, uid: userCredencial.user.uid};
                 await firestore.collection('users').doc(userCredencial.user.uid).set(userAuthenticated);
                 setError(null);
-                navigation.navigate('Home');
+                navigation.navigate('Contacts');
                 setLoading(false);
             }
             setLoading(false);
@@ -67,7 +67,6 @@ export default function RegisterScreem({ navigation }) {
             isRepeatPassword: !isRepeatPassword(),
             isEmpty: emptyForm()
         }
-        console.log('validate: ', validate)
         return validate;
     }
 

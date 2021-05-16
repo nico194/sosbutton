@@ -40,7 +40,7 @@ export default function HomeScreem({ navigation }) {
             const userCredencial = await auth.signInWithEmailAndPassword(user.email, user.password)
             if (userCredencial.user.uid){
                 setError(null);
-                navigation.navigate('Home');
+                navigation.navigate('Contacts');
                 setLoading(false);
             }
             setLoading(false);

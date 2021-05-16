@@ -9,7 +9,14 @@ const { spanishVioletLight } = colors
 const height = Dimensions.get('screen').height;
 const width = Dimensions.get('screen').width;
 
-export default function ContactForm({ showModal, setShowModal, aceptButton }) {
+export default function ContactForm({ showModal, setShowModal, contact, setContact, aceptButton }) {
+
+    const { name, phone } = contact;
+
+    const handleChange = (prop, value) => {
+        setContact({ ...contact, [prop]: value });
+    }
+
     return (
         <CustomModal
             visible={showModal}
@@ -21,6 +28,8 @@ export default function ContactForm({ showModal, setShowModal, aceptButton }) {
             <Text h4 style={styles.title}>Ingresar nuevo contacto:</Text>
             <Input
                 placeholder='Nombre'
+                onChangeText={ text => handleChange('name', text)}
+                value={name}
                 leftIcon={
                     <Icon
                         name='user'
@@ -33,6 +42,8 @@ export default function ContactForm({ showModal, setShowModal, aceptButton }) {
             <Input
                 placeholder='Telefono'
                 keyboardType='numeric'
+                onChangeText={ text => handleChange('phone', text)}
+                value={phone}
                 leftIcon={
                     <Icon
                         name='phone'

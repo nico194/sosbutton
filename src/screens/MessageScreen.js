@@ -1,15 +1,16 @@
 import React from 'react';
 import { StyleSheet, ScrollView, View } from 'react-native';
-import { Card, Input, Button } from 'react-native-elements';
+import { Card, Input, Button, Text } from 'react-native-elements';
 import CustomFooter from '../components/molecules/footer/CustomFooter';
 import CustomHeader from '../components/molecules/header/CustomHeader';
 import colors from '../utils/colors';
-const { spanishVioletLight } = colors;
+const { spanishVioletLight, spanishViolet } = colors;
 
 export default function MessageScreen({ navigation }) {
     return (
         <View style={styles.container}>
             <CustomHeader />
+            <Text h3 h3Style={{ padding: 15, color: spanishViolet }}>Mensaje</Text>
             <ScrollView>
                 <Card>
                     <Card.Title style={styles.titleStyle}>Mensage de Emergencia</Card.Title>
@@ -26,7 +27,7 @@ export default function MessageScreen({ navigation }) {
                     />
                 </Card>
             </ScrollView>
-            <CustomFooter navigation={navigation} page='Message' />
+            <CustomFooter navigate={navigation.navigate} page='Message' />
         </View>
     )
 }

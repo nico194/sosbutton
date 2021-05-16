@@ -5,13 +5,13 @@ import {footerNav } from '../../../utils/footerNav';
 import colors from '../../../utils/colors';
 const { xanadu, lightGreen } = colors;
 
-export default function CustomFooter({ navigation, page }) {
+export default function CustomFooter({ navigate, page }) {
 
     const [navSelected, setNavSelected] = useState(page)
 
     const goToDestination = destination => {
         setNavSelected(page)
-        navigation.navigate(destination)
+        navigate(destination)
     }
 
     const navs = footerNav.map( ({ destination, text, icon }, index) => {
