@@ -24,7 +24,10 @@ TaskManager.defineTask(LOCATION_FETCH_TASK, async ({ data, error }) => {
 	if(error) console.log(error.message);
 	
 	const { latitude, longitude } = data.locations[0].coords;
-
+	locationService.setLocation({
+		latitude,
+		longitude
+	})
 });
 
 export default function MapScreen({ navigation }) {
