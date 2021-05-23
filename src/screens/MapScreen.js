@@ -1,18 +1,35 @@
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, Text, View, ActivityIndicator, Dimensions, ScrollView } from 'react-native';
-import MapView from 'react-native-maps';
+import { StyleSheet, Text, View, Alert, Dimensions, ScrollView } from 'react-native';
+import MapView, { Marker } from 'react-native-maps';
 import MapViewDirections from 'react-native-maps-directions'
 import { MaterialIcons } from '@expo/vector-icons'
 import * as Location from 'expo-location';
+import * as TaskManager from 'expo-task-manager';
+import { Wave } from 'react-native-animated-spinkit';
 import FAB from '../components/atom/fab/FAB';
 import FindContactForm from '../components/organims/find-contact-form/FindContactForm';
-import colors from '../utils/colors';
 import CustomFooter from '../components/molecules/footer/CustomFooter';
 import CustomHeader from '../components/molecules/header/CustomHeader';
-const { spanishVioletLight } = colors;
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { auth, firestore } from '../utils/firebase';
+import { locationService } from '../utils/locationPublisher';
+import colors from '../utils/colors';
+import { LocationSubscriber } from 'expo-location/build/LocationSubscribers';
+const { spanishVioletLight, lightGreen } = colors;
+
+const LOCATION_FETCH_TASK = 'LOCATION_SERVICE';
+
+
+TaskManager.defineTask(LOCATION_FETCH_TASK, async ({ data, error }) => {
+	if(error) console.log(error.message);
+	
+	const { latitude, longitude } = data.locations[0].coords;
+
+});
 
 export default function MapScreen({ navigation }) {
-
+	
+	const USER_KEY = 'USER';
 	const [loading, setLoading] = useState(false)
 	const [region, setRegion] = useState({})
 	const [location, setLocation] = useState({})
@@ -21,59 +38,106 @@ export default function MapScreen({ navigation }) {
 	const [coords, setCoords] = useState([])
 	const API_KEY = 'AIzaSyBZ4QKcXVXPQUTSi5YWpafm-wbeIrJjOXQ';
 	
+	const setRegionAndLocation = async () => {
+		const position = await Location.getCurrentPositionAsync({ accuracy: Location.LocationAccuracy.BestForNavigation });
+		setRegion({
+			latitude: position.coords.latitude,
+			longitude: position.coords.longitude,
+			latitudeDelta: 0.009,
+			longitudeDelta: 0.009,
+		});
+		setLocation({
+			latitude: position.coords.latitude,
+			longitude: position.coords.longitude
+		})
+	}
 	
-	const getCurrentLocation = async () => {
-		try {
-			setLoading(true);
-			const { status } = await Location.requestForegroundPermissionsAsync()
-			if(status !== 'granted') console.log("You don't have location permissions");
-			const location = await Location.getCurrentPositionAsync({ accuracy: Location.LocationAccuracy.BestForNavigation });
-			setRegion({
-				latitude: location.coords.latitude,
-				longitude: location.coords.longitude,
-				latitudeDelta: 0.009,
-				longitudeDelta: 0.009,
-			})
-			setLocation({
-				latitude: location.coords.latitude,
-				longitude: location.coords.longitude
-			})
-			setContactLocation({
-				latitude: location.coords.latitude + 0.012 ,
-				longitude: location.coords.longitude - 0.012
-			})
+	const saveUser = async (user) => {
+		user.activeFollowLocation = true;
+		user.location = location;
+		console.log('location 2', user)
+		await setUserFromAsyncStorage(user);
+		const docRef = firestore.collection('users').doc(auth.currentUser.uid);
+        await docRef.set(user);
+	}	
+
+	const startSaveLocation = async (user) => {
+		const statusFP = await Location.requestForegroundPermissionsAsync();
+		const statusBP = await Location.requestBackgroundPermissionsAsync();
+		if(statusFP.granted && statusBP.granted) {
+			await setRegionAndLocation();
+			await saveUser(user);
+			await Location.startLocationUpdatesAsync(LOCATION_FETCH_TASK, {
+				accuracy: Location.Accuracy.BestForNavigation,
+				deferredUpdatesInterval: 1000,
+				deferredUpdatesDistance: 1000,
+				distanceInterval: 1,
+				foregroundService: {
+					notificationBody: "Uploading Jobs if available",
+					notificationTitle: "Background Fetch"
+				}
+			});
 			setLoading(false);
+		} else {
+			setLoading(false);
+			navigation.navigate('Contacts');
+		}
+	}
+
+	const getUserFromAsyncStorage = async () => {
+		const userInAsyncStorage = await AsyncStorage.getItem(USER_KEY);
+		return JSON.parse(userInAsyncStorage);
+	}
+
+	const setUserFromAsyncStorage = async (user) => {
+		await AsyncStorage.setItem(USER_KEY, JSON.stringify(user));
+	}
+
+	const LocationSubcriber = ({ latitude, longitude }) => {
+		setLocation({ latitude, longitude });
+	}
+
+	const startLocationService = async () => {
+		locationService.subscribe(LocationSubcriber);
+		setLoading(true);
+		try {
+			const user = await getUserFromAsyncStorage();
+			if(user.activeFollowLocation === undefined && !user.activeFollowLocation) {
+				Alert.alert(
+					'Guardado de Ubicación',
+					`Esta aplicación guardara tu ubicación para poder mostrarsela a la lista de tus contactos guadados en la aplicación.
+					Si aceptas, la aplicación empezará a guarda la ubicación.
+					Si no aceptas, la lista de contactos no podra ver tu ubicación en caso de un acontecimiento inesperado`,
+					[
+						{
+							text: 'Cancelar',
+							onPress: () => navigation.navigate('Contacts'),
+							style: 'cancel'
+						},
+						{
+							text: 'Aceptar',
+							onPress: () => startSaveLocation(user),
+						}
+					],
+					{ cancelable: false }
+				)
+			}
 		} catch (error) {
-			console.log(error)
+			console.log(error);
 			setLoading(false);
 		}
 	}
-	
+
 	useEffect(() => {
-		getCurrentLocation();
-	}, [])
+		startLocationService();
+    }, [])
 	
 	const findContact = () => {
-		setShowModal(true)
-
-		// setLoading(true);
-		// const url = `https://maps.googleapis.com/maps/api/directions/json?origin=${location}&destination=${contactLocation}&key=${API_KEY}`;
-		// try {
-		// 	const resp = await fetch(url);
-		// 	const respJSON = await resp.json();
-		// 	console.log(respJSON)
-		// 	let points = polyline.decode(respJSON.routes[0].overview_polyline.points);
-		// 	let coords = points.map((point, index) => ({ latitude: point[0], longitude: point[1]}))
-		// 	console.log(coords);
-		// 	setCoords(coords);
-		// 	setLoading(true);
-		// } catch (error) {
-		// 	console.log(error)
-		// }
-		
-		
+		// setContactLocation({
+		// 	latitude: location.latitude - 0.005,
+		// 	longitude: location.longitude - 0.005
+		// })	
 	}
-
 
 	return (
 		<View style={{ flex: 1 }}>
@@ -89,7 +153,7 @@ export default function MapScreen({ navigation }) {
 			<ScrollView>
 				{
 					loading ?
-						<Text>Cargango...</Text>
+						<Wave size={48} color={spanishVioletLight} style={{ alignSelf: 'center'}}/>
 						:
 						<View>
 							<FindContactForm 
@@ -98,16 +162,29 @@ export default function MapScreen({ navigation }) {
 							/>
 							<MapView
 								initialRegion={region}
-								showsUserLocation={true}
 								style={styles.map}
 								>
-								<MapViewDirections
-									origin={location}
-									destination={contactLocation}
-									apikey={API_KEY}
-									strokeWidth={5}
-									strokeColor={spanishVioletLight}
-								/>			
+									<Marker 
+										coordinate={location}
+										icon={require('../../assets/custom-marker.png')}
+										title='Tu ubicacion'
+									/>
+									{
+										Object.keys(contactLocation).length > 0 &&
+											<View>
+												<Marker 
+													coordinate={contactLocation}
+													icon={require('../../assets/contact-marker.png')}
+												/>
+												<MapViewDirections
+													origin={location}
+													destination={contactLocation}
+													apikey={API_KEY}
+													strokeWidth={5}
+													strokeColor={lightGreen}
+												/>			
+											</View>
+									}
 							</MapView>
 						</View>
 				}

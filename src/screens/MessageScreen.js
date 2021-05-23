@@ -20,12 +20,12 @@ export default function MessageScreen({ navigation }) {
     const [message, setMessage] = useState('');
     const [loading, setLoading] = useState(false);
 
-    const getMessageFromFirebase = async () => {
+    const getMessageFromAsyncStorage = async () => {
         setLoading(true)
         try {
-            const user = await firestore.collection('users').doc(auth.currentUser.uid).get();
-            await AsyncStorage.setItem(USER_KEY, JSON.stringify(user.data()));
-            user.data().message !== undefined ? setMessage(user.data().message) : setMessage('');
+            const userInAsyncStorage = await AsyncStorage.getItem(USER_KEY);
+		    const user = JSON.parse(userInAsyncStorage);
+            user.message !== undefined ? setMessage(user.message) : setMessage('');
             setLoading(false);
         } catch (error) {
             console.log(error);
@@ -34,7 +34,7 @@ export default function MessageScreen({ navigation }) {
     }
 
     useEffect(() => {
-        getMessageFromFirebase();
+        getMessageFromAsyncStorage();
     }, [])
 
     const handleChange = value => {
