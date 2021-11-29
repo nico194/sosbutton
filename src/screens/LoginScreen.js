@@ -1,10 +1,11 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react';
 import { ScrollView, View, StyleSheet, ActivityIndicator, Dimensions } from 'react-native';
-import { Card, Input, Button, Text } from 'react-native-elements';
+import { Card, Input, Button } from 'react-native-elements';
+import { useDispatch, useSelector } from 'react-redux';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import ErrorMessage from '../components/atom/error-message/ErrorMessage';
 import CustomHeader from '../components/molecules/header/CustomHeader';
-import { auth } from '../utils/firebase';
+import { loginUser, setError, setErrorInNull } from '../redux/actions/users'
 import colors from '../utils/colors';
 const { spanishVioletLight, lightGreen } = colors;
 
@@ -17,37 +18,25 @@ export default function HomeScreem({ navigation }) {
         password: ''
     }
 
-    const [loading, setLoading] = useState(false);
     const [user, setUser] = useState(initialStateUser);
-    const [error, setError] = useState(null);
+    
+    const dispatch = useDispatch();
+    const { loading, error, logged } = useSelector(state => state.users)
+    
+    useEffect(() => {
+        logged && navigation.navigate('Contacts')
+    }, [logged])
 
     const handleChange = (prop, value) => {
         setUser({ ...user, [prop]: value})
     }
-
-    const loginUser = async () => {
+    
+    const login = async () => {
         const form = validationForm();
         if (form.isValid) {
-            await login();
+            dispatch(loginUser(user.email, user.password));
         } else {
-            form.isEmpty && setError({ code: 1, message: 'Complete todos los campos, por favor.' })
-        }
-    }
-
-    const login = async () => {
-        setLoading(true);
-        try {
-            const userCredencial = await auth.signInWithEmailAndPassword(user.email, user.password)
-            if (userCredencial.user.uid){
-                setError(null);
-                navigation.navigate('Contacts');
-                setLoading(false);
-            }
-            setLoading(false);
-        } catch (err) {
-            console.log(err.code, err.message)
-            setLoading(false);
-            setError(err);
+            form.isEmpty && dispatch(setError({ code: 1, message: 'Complete todos los campos, por favor.' }))
         }
     }
 
@@ -90,7 +79,7 @@ export default function HomeScreem({ navigation }) {
 			<ScrollView>
                 <Card containerStyle={{ width: width - 30, marginTop: 100 }}>
                     <Card.Title>Iniciar seción</Card.Title>
-                    { error && <ErrorMessage error={error} setError={setError} /> }
+                    { error && <ErrorMessage error={error} onPress={() => dispatch(setErrorInNull())} /> }
                     <View>
                         <Input
                             placeholder='Email'
@@ -127,7 +116,7 @@ export default function HomeScreem({ navigation }) {
                             <Button 
                                 title='Ingresar'
                                 buttonStyle={{ backgroundColor: spanishVioletLight}}
-                                onPress={loginUser}
+                                onPress={login}
                             />
                         </View>
                     </View>

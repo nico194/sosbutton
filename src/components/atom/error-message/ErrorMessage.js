@@ -5,10 +5,10 @@ import { getErrorMessate } from '../../../utils/manageError';
 import colors from '../../../utils/colors';
 const { danger, dangerLight } = colors;
 
-export default function ErrorMessage({ error, setError }) {
+export default function ErrorMessage({ error, onPress }) {
     return (
         <Button 
-            onPress={() => setError(null)}
+            onPress={onPress}
             buttonStyle={styles.errorText}
             title={getErrorMessate(error.code, error.message)}
             titleStyle={{ color: danger }}

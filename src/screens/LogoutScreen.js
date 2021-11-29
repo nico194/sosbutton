@@ -1,28 +1,24 @@
-import React, { useState } from 'react';
+import React, { useEffect } from 'react';
 import { StyleSheet, ScrollView, View, ActivityIndicator } from 'react-native';
 import { Text, Button} from 'react-native-elements';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useDispatch, useSelector } from 'react-redux';
 import CustomHeader from '../components/molecules/header/CustomHeader';
 import CustomFooter from '../components/molecules/footer/CustomFooter';
-import { auth } from '../utils/firebase'
+import { logoutUser } from '../redux/actions/users';
 import colors from '../utils/colors';
 const { spanishVioletLight, lightGreen, spanishViolet } = colors;
 
 export default function LogoutScreen({ navigation }) {
 
-    const [loading, setLoading] = useState(false);
+    const dispatch = useDispatch();
+    const { loading, logged } = useSelector(state => state.users)
+
+    useEffect(() => {
+        !logged && navigation.navigate('Login');
+    }, [logged])
 
     const logout = async () => {
-        setLoading(true)
-        try {
-            await auth.signOut();
-            await AsyncStorage.setItem('USER', JSON.stringify({}))
-            navigation.navigate('Login');
-            setLoading(false);
-        } catch (error) {
-            setLoading(false);
-            console.log(error.code, error.message)
-        }
+        dispatch(logoutUser());
     }
 
     if(loading) {

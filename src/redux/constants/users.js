@@ -1,0 +1,22 @@
+export const USER_PENDING = 'USER_PENDING';
+
+export const GET_USER = 'GET_USER';
+export const ERROR_USER = 'ERROR_USER';
+export const LOGOUT_USER = 'LOGOUT_USER';
+
+export const ADD_CONTACT = 'ADD_CONTACT';
+export const UPDATE_CONTACT = 'UPDATE_CONTACT';
+export const DELETE_CONTACT = 'DELETE_CONTACT';
+
+export const GET_LOCATION = 'GET_LOCATION';
+export const SET_LOCATION = 'SET_LOCATION';
+
+export const CONTACT_LOCATION = 'CONTACT_LOCATION';
+export const HIDE_CONTACT_LOCATION = 'HIDE_CONTACT_LOCATION';
+
+export const GET_MESSAGE = 'GET_MESSAGE';
+export const SET_MESSAGE = 'SET_MESSAGE';
+
+export const CHANGED = 'CHANGED';
+
+export const USER_ASYNC_STORAGE = 'USER_ASYNC_STORAGE';

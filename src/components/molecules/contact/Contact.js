@@ -2,17 +2,17 @@ import React, { useState } from 'react'
 import { StyleSheet, TouchableOpacity, View } from 'react-native';
 import { Card, Avatar, Text, Input, Button } from 'react-native-elements';
 import Icon from 'react-native-vector-icons/FontAwesome';
-import { MaterialIcons, MaterialCommunityIcons } from '@expo/vector-icons';
+import { MaterialIcons } from '@expo/vector-icons';
 import colors from '../../../utils/colors';
 const { spanishVioletLight, spanishViolet, danger } = colors;
 
 export default function Contact({ contact, contactSelected, setContactSelected, deleteContact, updateContact }) {
 
     const { name, phone } = contactSelected;
-    const [selected, setselected] = useState(false)
+    const [selected, setSelected] = useState(false)
 
     const showContactInfo = () => {
-        setselected(!selected);
+        setSelected(!selected);
         setContactSelected(contact)
     }
 
@@ -22,21 +22,21 @@ export default function Contact({ contact, contactSelected, setContactSelected, 
 
     return (
         <Card containerStyle={[ selected && styles.cardSelected ]}>
-            <TouchableOpacity 
+            <TouchableOpacity
                 onPress={showContactInfo}
                 style={styles.contact}
                 >
                 <View style={styles.name}>
-                    <Avatar 
-                        rounded 
-                        size={48} 
+                    <Avatar
+                        rounded
+                        size={48}
                         icon={
                             {
-                                name: 'user-circle', 
-                                type: 'font-awesome', 
+                                name: 'user-circle',
+                                type: 'font-awesome',
                                 color: selected ? spanishVioletLight :'#000'
                             }
-                        } 
+                        }
                         />
                     <Text h4>{ contact.name }</Text>
                 </View>
@@ -80,13 +80,13 @@ export default function Contact({ contact, contactSelected, setContactSelected, 
                             }
                         />
                         <View style={styles.actionButtons}>
-                            <Button 
+                            <Button
                                 type='clear'
                                 title='Elmininar'
                                 titleStyle={{ color: danger }}
                                 onPress={deleteContact}
                             />
-                            <Button 
+                            <Button
                                 title='Guardar'
                                 buttonStyle={{ backgroundColor: spanishVioletLight, paddingHorizontal: 30}}
                                 onPress={updateContact}
@@ -99,23 +99,23 @@ export default function Contact({ contact, contactSelected, setContactSelected, 
 }
 
 const styles = StyleSheet.create({
-    contact: { 
-        flexDirection: 'row', 
-        justifyContent: 'space-between', 
-        alignItems: 'center' 
-    },
-    name: { 
+    contact: {
         flexDirection: 'row',
-        alignItems: 'center' 
+        justifyContent: 'space-between',
+        alignItems: 'center'
     },
-    cardSelected: { 
+    name: {
+        flexDirection: 'row',
+        alignItems: 'center'
+    },
+    cardSelected: {
         borderWidth: 2,
         borderColor: spanishVioletLight,
         borderBottomLeftRadius: 20,
         borderBottomRightRadius: 20
     },
     actionButtons: {
-        flexDirection: 'row', 
+        flexDirection: 'row',
         justifyContent: 'flex-end'
     }
 })

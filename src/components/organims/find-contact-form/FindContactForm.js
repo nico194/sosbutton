@@ -1,15 +1,28 @@
-import React from 'react'
+import React, { useEffect } from 'react';
+import { useSelector, useDispatch } from 'react-redux';
 import { View, Dimensions, StyleSheet } from 'react-native';
 import { Button, Input, Text } from 'react-native-elements';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import CustomModal from '../../molecules/modal/CustomModal';
 import colors from '../../../utils/colors';
+import { setChanged } from '../../../redux/actions/users';
 const { spanishVioletLight } = colors
 
 const height = Dimensions.get('screen').height;
 const width = Dimensions.get('screen').width;
 
-export default function FindContactForm({ showModal, setShowModal }) {
+export default function FindContactForm({ showModal, setShowModal, phone, setPhone, findContact }) {
+
+    const dispatch = useDispatch();
+    const { changed, loading } = useSelector(state => state.users);
+
+    useEffect(() => {
+        if(changed) {
+            dispatch(setChanged(false));
+            setShowModal(false);
+        }
+    }, [changed])
+
     return (
         <CustomModal
             visible={showModal}
@@ -22,6 +35,8 @@ export default function FindContactForm({ showModal, setShowModal }) {
             <Input
                 placeholder='Telefono'
                 keyboardType='numeric'
+                value={phone + ''}
+                onChangeText={ text => setPhone(text)}
                 leftIcon={
                     <Icon
                         name='phone'
@@ -32,16 +47,25 @@ export default function FindContactForm({ showModal, setShowModal }) {
                 }
             />
             <View style={styles.actionButtons}>
-                <Button 
+                <Button
                     title='Cerrar'
                     buttonStyle={{ backgroundColor: spanishVioletLight}}
                     onPress={() => setShowModal(false)}
                 />
-                <Button 
-                    title='Aceptar'
-                    buttonStyle={{ backgroundColor: spanishVioletLight}}
-                    onPress={() => setShowModal(false)}
-                />
+                {
+                    loading ?
+                    <Button
+                        title="Loading button"
+                        buttonStyle={{ backgroundColor: spanishVioletLight}}
+                        loading
+                    />
+                    :
+                    <Button
+                        title='Aceptar'
+                        buttonStyle={{ backgroundColor: spanishVioletLight}}
+                        onPress={findContact}
+                    />
+                }
             </View>
         </CustomModal>
     )
@@ -50,9 +74,9 @@ export default function FindContactForm({ showModal, setShowModal }) {
 const styles = StyleSheet.create({
     title: {
         marginBottom: 20
-    },  
+    },
     actionButtons: {
-        flexDirection: 'row', 
+        flexDirection: 'row',
         justifyContent: 'space-between'
     }
 })

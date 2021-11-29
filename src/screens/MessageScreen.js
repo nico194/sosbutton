@@ -1,13 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { StyleSheet, ScrollView, View, Dimensions } from 'react-native';
 import { Card, Input, Button, Text } from 'react-native-elements';
+import { useDispatch, useSelector } from 'react-redux';
 import { Wave } from 'react-native-animated-spinkit';
-import Toast from 'react-native-easy-toast';
 import { MaterialIcons } from '@expo/vector-icons';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import Toast from 'react-native-easy-toast';
 import CustomFooter from '../components/molecules/footer/CustomFooter';
 import CustomHeader from '../components/molecules/header/CustomHeader';
-import { auth, firestore } from '../utils/firebase';
+import { saveMessage, setChanged } from '../redux/actions/users';
 import colors from '../utils/colors';
 const { spanishVioletLight, spanishViolet } = colors;
 
@@ -15,54 +15,31 @@ const width = Dimensions.get('screen').width;
 
 export default function MessageScreen({ navigation }) {
 
-    const USER_KEY = 'USER';
     const [toast, setToast] = useState(null);
-    const [message, setMessage] = useState('');
-    const [loading, setLoading] = useState(false);
+    const [userMessage, setUserMessage] = useState('');
 
-    const getMessageFromAsyncStorage = async () => {
-        setLoading(true)
-        try {
-            const userInAsyncStorage = await AsyncStorage.getItem(USER_KEY);
-		    const user = JSON.parse(userInAsyncStorage);
-            user.message !== undefined ? setMessage(user.message) : setMessage('');
-            setLoading(false);
-        } catch (error) {
-            console.log(error);
-            setLoading(false)
-        }
+    const dispatch = useDispatch();
+    const { loading, changed, message } = useSelector(state => state.users)
+
+    const handleChange = value => {
+        setUserMessage(value)
     }
 
     useEffect(() => {
-        getMessageFromAsyncStorage();
-    }, [])
+        setUserMessage(message);
+    }, [message])
 
-    const handleChange = value => {
-        setMessage(value)
-    }
-
-    const saveMessage = async () => {
-        setLoading(true);
-        try {
-            const userInAsyncStorage = await AsyncStorage.getItem(USER_KEY);
-            const user = JSON.parse(userInAsyncStorage);
-            const userEdited = { ...user, message }
-            await AsyncStorage.setItem(USER_KEY, JSON.stringify(userEdited))
-            const docRef = firestore.collection('users').doc(auth.currentUser.uid);
-            await docRef.set(userEdited);
-            setLoading(false);
+    useEffect(() => {
+        if (changed) {
+            dispatch(setChanged());
             toast.show(
                 <View style={{ flexDirection: 'row', alignItems: 'center' }}>
                     <MaterialIcons size= {28} color='#fff' name='done' />
-                    <Text style={{ color: '#fff', marginLeft: 10 }}>Mensaje Guardado</Text>
+                    <Text style={{ color: '#fff', marginLeft: 10 }}>Mensaje actualizado</Text>
                 </View>
             )
-        } catch (error) {
-            console.log(error);
-            setLoading(false)
         }
-    }
-
+    }, [changed, message])
 
     return (
         <View style={styles.container}>
@@ -76,7 +53,7 @@ export default function MessageScreen({ navigation }) {
                         multiline={true}
                         numberOfLines={4}
                         placeholder='Ingrese un mensaje predeterinado de pánico'
-                        value={message}
+                        value={userMessage}
                         onChangeText={text => handleChange(text)}
                     />
                     {
@@ -86,7 +63,7 @@ export default function MessageScreen({ navigation }) {
                             <Button
                                 buttonStyle={styles.saveButton}
                                 title='Guardar'
-                                onPress={saveMessage}
+                                onPress={() => dispatch(saveMessage(userMessage))}
                             />
                     }
                 </Card>

@@ -1,10 +1,11 @@
 import React, { useState } from 'react'
 import { ScrollView, View, StyleSheet, ActivityIndicator, Dimensions } from 'react-native';
 import { Card, Input, Button } from 'react-native-elements';
+import { useDispatch, useSelector } from 'react-redux';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import ErrorMessage from '../components/atom/error-message/ErrorMessage';
 import CustomHeader from '../components/molecules/header/CustomHeader';
-import { auth, firestore } from '../utils/firebase';
+import { registerUser, setError, setErrorInNull } from '../redux/actions/users';
 import colors from '../utils/colors';
 const { spanishVioletLight, lightGreen } = colors;
 
@@ -20,42 +21,21 @@ export default function RegisterScreem({ navigation }) {
         repeatPassword: ''
     }
 
-    const [loading, setLoading] = useState(false);
     const [user, setUser] = useState(initialStateUser);
-    const [error, setError] = useState(null);
+    const dispatch = useDispatch();
+    const { loading, error } = useSelector(state => state.users)
     
     const handleChange = (prop, value) => {
         setUser({ ...user, [prop]: value });
     }
 
-    const registerUser = async () => {
+    const register = async () => {
         const form = validationForm();
         if (form.isValid) {
-            await register();
+            dispatch(registerUser(user));
         } else {
-            form.isEmpty && setError({ code: 1, message: 'Complete todos los campos, por favor.' })
-            form.isRepeatPassword && setError({ code: 2, message: 'Los campos de contraseña deben ser iguales.' })
-        }
-    }
-
-    const register = async () => {
-        setLoading(true);
-        try {
-            const userCredencial = await auth.createUserWithEmailAndPassword(user.email, user.password);
-            if (userCredencial.user.uid) {
-                delete user.password;
-                delete user.repeatPassword;
-                const userAuthenticated = { ...user, uid: userCredencial.user.uid};
-                await firestore.collection('users').doc(userCredencial.user.uid).set(userAuthenticated);
-                setError(null);
-                navigation.navigate('Contacts');
-                setLoading(false);
-            }
-            setLoading(false);
-        } catch (err) {
-            console.log(err.code, err.message)
-            setError(err);
-            setLoading(false);
+            form.isEmpty && dispatch(setError({ code: 1, message: 'Complete todos los campos, por favor.' }))
+            form.isRepeatPassword && dispatch(setError({ code: 2, message: 'Los campos de contraseña deben ser iguales.' }))
         }
     }
 
@@ -116,7 +96,7 @@ export default function RegisterScreem({ navigation }) {
 			<ScrollView>
                 <Card containerStyle={{ width: width - 30 }}>
                     <Card.Title>Registrarse</Card.Title>
-                    { error && <ErrorMessage error={error} setError={setError} /> }
+                    { error && <ErrorMessage error={error} onPress={() => dispatch(setErrorInNull())} /> }
                     <View>
                         <Input
                             placeholder='Nombre'
@@ -190,7 +170,7 @@ export default function RegisterScreem({ navigation }) {
                             <Button 
                                 title='Ingresar'
                                 buttonStyle={{ backgroundColor: spanishVioletLight}}
-                                onPress={registerUser}
+                                onPress={register}
                             />
                         </View>
                     </View>

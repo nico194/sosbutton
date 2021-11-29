@@ -1,17 +1,17 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { StyleSheet, View, Dimensions, Alert, ScrollView } from 'react-native';
-import { Button, Text } from 'react-native-elements';
+import { Text } from 'react-native-elements';
+import { useDispatch, useSelector } from 'react-redux';
 import { MaterialIcons } from '@expo/vector-icons';
 import { Wave } from 'react-native-animated-spinkit';
 import Toast from 'react-native-easy-toast';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import FAB from '../components/atom/fab/FAB';
 import Contact from '../components/molecules/contact/Contact';
 import CustomHeader from '../components/molecules/header/CustomHeader';
 import CustomFooter from '../components/molecules/footer/CustomFooter';
 import ContactForm from '../components/organims/contact-form/ContactForm';
-import { auth, firestore, getNewId } from '../utils/firebase';
 import colors from '../utils/colors';
+import { addContact, deleteContact, updateContact, setChanged } from '../redux/actions/users';
 const { spanishVioletLight, spanishViolet } = colors;
 
 const width = Dimensions.get('screen').width;
@@ -24,70 +24,29 @@ export default function ContactsScreen({ navigation }) {
         phone: ''
     };
 
-    const USER_KEY = 'USER';
     const [contact, setContact] = useState(initialStateContact);
     const [contactSelected, setContactSelected] = useState(initialStateContact);
-    const [contacts, setContacts] = useState([])
     const [showModal, setShowModal] = useState(false);
     const [toast, setToast] = useState(null);
-    const [loading, setLoading] = useState(false);
 
-    const getContactFromFirebase = async () => {
-        setLoading(true)
-        try {
-            const user = await firestore.collection('users').doc(auth.currentUser.uid).get();
-            await AsyncStorage.setItem(USER_KEY, JSON.stringify(user.data()));
-            user.data().contacts !== undefined ? setContacts(user.data().contacts) : setContacts([]);
-            setLoading(false);
-        } catch (error) {
-            console.log(error);
-            setLoading(false)
-        }
-    }
+    const dispatch = useDispatch();
+    const { loading, contacts, changed } = useSelector(state => state.users)
 
-    useEffect(() => {
-        getContactFromFirebase();
-    }, [])
-
-    const constactsList = contacts !== undefined && contacts.map((contact, index) => {
+    const constactsList = contacts !== undefined && contacts.map((cont, index) => {
         return (
             <Contact
                 key={index}
-                contact={contact}
+                contact={cont}
                 contactSelected={contactSelected}
                 setContactSelected={setContactSelected}
                 deleteContact={() => openDeleteAlert()}
-                updateContact={() => updateContact(contact.id)}
+                updateContact={() => dispatch(updateContact(contactSelected))}
             />
         )
     });
 
     const showContactForm = async () => {
         setShowModal(!showModal);
-    }
-
-    const saveContacts = async (newContacts) => {
-        const userInAsyncStorage = await AsyncStorage.getItem(USER_KEY);
-        const user = JSON.parse(userInAsyncStorage);
-        const userEdited = { ...user, contacts: newContacts }
-        await AsyncStorage.setItem(USER_KEY, JSON.stringify(userEdited))
-        const docRef = firestore.collection('users').doc(auth.currentUser.uid);
-        await docRef.set(userEdited);
-    }
-
-    const saveContact = async () => {
-        setLoading(true);
-        try {
-            const newContact = { ...contact, id: getNewId() };
-            contacts.push(newContact);
-            await saveContacts(contacts);
-            setContact({});
-            setLoading(false);
-            setShowModal(false);
-        } catch (error) {
-            console.log(error);
-            setLoading(false);
-        }
     }
 
     const openDeleteAlert = () => {
@@ -102,44 +61,26 @@ export default function ContactsScreen({ navigation }) {
                 },
                 {
                     text: 'Aceptar',
-                    onPress: () => removeContact(contactSelected.id),
+                    onPress: () => dispatch(deleteContact(contactSelected.id))
                 }
             ],
             { cancelable: false }
         )
     }
 
-    const removeContact = async (id) => {
-        setLoading(true)
-        try {
-            const contactsDeleted = contacts.filter(element => element.id !== id);
-            setContacts(contactsDeleted);
-            await saveContacts(contactsDeleted);
-            setLoading(false);
-        } catch (error) {
-            console.log(error)
-            setLoading(false);
-        }
-    }
 
-    const updateContact = async (id) => {
-        setLoading(true)
-        try {
-            const contactsUpdated = contacts.map( element => element.id === id ? { ...element, name: contactSelected.name, phone: contactSelected.phone } : element )
-            setContacts(contactsUpdated);
-            await saveContacts(contactsUpdated);
+    useEffect(() => {
+        if (changed) {
+            setShowModal(false)
+            dispatch(setChanged())
             toast.show(
                 <View style={{ flexDirection: 'row', alignItems: 'center' }}>
                     <MaterialIcons size= {28} color='#fff' name='done' />
-                    <Text style={{ color: '#fff', marginLeft: 10 }}>Contacto actualizado</Text>
+                    <Text style={{ color: '#fff', marginLeft: 10 }}>Lista de contactos actualizada</Text>
                 </View>
             )
-            setLoading(false);
-        } catch (error) {
-            console.log(error)
-            setLoading(false);
-        }
-    }
+        } 
+    }, [changed, contacts])
 
     return (
         <View style={styles.container}>
@@ -159,7 +100,7 @@ export default function ContactsScreen({ navigation }) {
                     setShowModal={setShowModal}
                     contact={contact}
                     setContact={setContact}
-                    aceptButton={saveContact}
+                    aceptButton={() => dispatch(addContact(contact))}
                     />
                 { 
                     loading ?
